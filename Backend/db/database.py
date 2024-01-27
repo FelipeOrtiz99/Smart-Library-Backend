@@ -3,7 +3,7 @@ import os
 
 # Función para conectar y desconectar
 def get_connection():
-    connection = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};Server=tcp:library-usco.database.windows.net,1433;Database=library;Uid=admin_library;Pwd=Seminariousco123;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;')
+    connection = pyodbc.connect('Drives')
     cursor = connection.cursor()
     return connection, cursor
 
