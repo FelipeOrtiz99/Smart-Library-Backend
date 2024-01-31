@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException,Response
-from db.database import get_connection, close_connection
-from models.security_model import UserLogin, UserLoginResponse
-from models.user_model import User
-from utils import bearer
+from app.db.database import get_connection, close_connection
+from app.models.security_model import UserLogin, UserLoginResponse
+from app.models.user_model import User
+from app.utils import bearer
 
 router = APIRouter()
 
