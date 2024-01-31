@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException,Response
-from db.database import get_connection, close_connection
-from models.user_model import User
+from app.db.database import get_connection, close_connection
+from app.models.user_model import User
 from fastapi.security import OAuth2PasswordBearer
-from utils import bearer
+from app.utils import bearer
 
 router = APIRouter()
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from db.database import get_connection, close_connection
-from models.book_model import Book
+from app.db.database import get_connection, close_connection
+from app.models.book_model import Book
 
 router = APIRouter()
 

@@ -1,5 +1,4 @@
-import pyodbc, struct
-import os
+import pyodbc
 
 # Función para conectar y desconectar
 def get_connection():
