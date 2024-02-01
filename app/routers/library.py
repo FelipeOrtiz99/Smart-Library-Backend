@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.db.database import get_connection, close_connection
-from app.models.book_model import Book
+from app.models.book_model import Book, Raiting_User, Rating_User_Search
 from app.utils import bearer
 
 router = APIRouter()
@@ -77,7 +77,7 @@ async def update_book(
 
 
 @router.delete("/delete/{isbn}/")
-async def delete_isbn(
+async def delete_book(
     isbn: str, 
     current_user: dict = Depends(bearer.decode_jwt_token),
     conn = Depends(get_connection)):
@@ -100,8 +100,8 @@ async def search_title(
     conn = Depends(get_connection)):
     connection, cursor = conn
     try:
-        query = "Select * FROM Book WHERE BookTitle Like '%?%' ORDER BY ISBN OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
-        cursor.execute(query, skip, limit)
+        query = "Select ISBN As isbn, BookTitle As book_title, BookAuthor As book_author, YearOfPublication As year_publication, Publisher as publisher, ImageURLS As url_s, ImageURLM As url_m, ImageURLL as url_l FROM Book WHERE BookTitle Like ? ORDER BY ISBN OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+        cursor.execute(query, '%{}%'.format(title), skip, limit)
         books = cursor.fetchall()
         list_books = [dict(zip([column[0] for column in cursor.description], row)) for row in books]
         return list_books
@@ -111,7 +111,7 @@ async def search_title(
         close_connection(connection, cursor)
 
 @router.post("/get/book/search/author", response_model=list[Book])
-async def search_title(
+async def search_author(
     author: str,
     skip: int = Query(0, alias="offset", ge=0),
     limit: int = Query(10, le=100),
@@ -120,8 +120,8 @@ async def search_title(
 ):
     connection, cursor = conn
     try:
-        query = "Select * FROM Book WHERE BookAuthor Like '%?%' ORDER BY ISBN OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
-        cursor.execute(query, skip, limit)
+        query = "Select ISBN As isbn, BookTitle As book_title, BookAuthor As book_author, YearOfPublication As year_publication, Publisher as publisher, ImageURLS As url_s, ImageURLM As url_m, ImageURLL as url_l FROM Book WHERE BookAuthor Like ? ORDER BY ISBN OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+        cursor.execute(query, '%{}%'.format(author),skip, limit)
         books = cursor.fetchall()
         list_books = [dict(zip([column[0] for column in cursor.description], row)) for row in books]
         return list_books
@@ -130,17 +130,67 @@ async def search_title(
     finally:
         close_connection(connection, cursor)
 
-@router.get("/get/book/raiting")
-async def get_raiting(
+@router.get("/get/book/rating")
+async def get_rating(
     isbn: str, 
     current_user: dict = Depends(bearer.decode_jwt_token),
     conn = Depends(get_connection)
 ):
     connection, cursor = conn
     try:
-        cursor.execute("Select AVG(BookRating) As Raiting from Rating Where ISBN = ?", isbn)
-        raiting = cursor.fetchone["Raiting"]
-        return raiting
+        cursor.execute("Select AVG(BookRating) As Raiting from rating Where ISBN = ?", isbn)
+        rating = cursor.fetchone["rating"]
+        return rating
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        close_connection(connection, cursor)
+
+@router.post("/get/rating/user", response_model=Raiting_User)
+async def get_rating(
+    rating_user : Rating_User_Search,
+    current_user: dict = Depends(bearer.decode_jwt_token),
+    conn = Depends(get_connection)
+):
+    connection, cursor = conn
+    try:
+        query = "SELECT ISBN as isbn, UserId as id_user,BookRating as user_rating FROM Rating Where Userid = ? AND ISBN = ?"
+        cursor.execute(query, rating_user.id_user, rating_user.isbn)
+        rating = cursor.fetchone()
+        return rating
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        close_connection(connection, cursor)
+
+
+@router.post("/create/rating")
+async def create_rating(
+    rating_user: Raiting_User,
+    current_user: dict = Depends(bearer.decode_jwt_token),
+    conn = Depends(get_connection)
+):
+    connection,cursor = conn
+    try:
+        cursor.execute("INSERT INTO Rating (UserId, ISBN, BookRating) VALUES (?,?,?)", rating_user.id_user, rating_user.isbn, rating_user.user_raiting)
+        connection.commit()
+        return {"message": "Rating created successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        close_connection(connection,cursor)
+
+@router.put("/update/rating/{id_rating}/")
+async def update_rating(
+    id_rating: int, 
+    rating_user: Raiting_User, 
+    current_user: dict = Depends(bearer.decode_jwt_token),
+    conn = Depends(get_connection)):
+    connection, cursor = conn
+    try:
+        cursor.execute("UPDATE [Book] SET BookRating = ? WHERE Id = ?", rating_user.user_raiting, id_rating)
+        connection.commit()
+        return {"message": "Rating updated successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

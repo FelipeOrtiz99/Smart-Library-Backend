@@ -13,7 +13,7 @@ def create_jwt_token(data: dict) -> str:
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return {"access_token": encoded_jwt, "token_type": "bearer", "expire_date": expire}
 
 
 def decode_jwt_token(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token"))):
