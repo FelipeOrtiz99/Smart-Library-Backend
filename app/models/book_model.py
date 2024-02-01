@@ -12,3 +12,13 @@ class Book(BaseModel):
     url_s: Union[None, str]
     url_m: Union[None, str]
     url_l: Union[None, str]
+
+
+class Raiting_User(BaseModel):
+    isbn: str
+    id_user: int
+    user_raiting: float
+
+class Rating_User_Search(BaseModel):
+    isbn: str
+    id_user: int
