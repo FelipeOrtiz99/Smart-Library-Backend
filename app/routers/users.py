@@ -23,7 +23,11 @@ async def get_user(
 
 
 @router.get("/get/{id_user}", response_model=User)
-async def get_user_id(user_id: int, conn = Depends(get_connection)):
+async def get_user_id(
+    user_id: int, 
+    current_user: dict = Depends(bearer.decode_jwt_token),
+    conn = Depends(get_connection)
+):
     connection, cursor = conn
     try:
         cursor.execute("SELECT Id as id, Type as type, Name as name, LastName as last_name, Email as email, Password as password, Age as age, Active as active FROM [User] WHERE Id = ?", user_id)
@@ -39,10 +43,14 @@ async def get_user_id(user_id: int, conn = Depends(get_connection)):
         close_connection(connection, cursor)
 
 @router.post("/create")
-async def create_user(user: User, conn = Depends(get_connection)):
+async def create_user(
+    user: User, 
+    current_user: dict = Depends(bearer.decode_jwt_token),
+    conn = Depends(get_connection)
+):
     connection,cursor = conn
     try:
-        cursor.execute("INSERT INTO User (Type, Name, LastName As last_name, Email, Password, Age, Active) VALUES (?,?,?,?,?,?,?)", user.type, user.name, user.last_name, user.email, user.password, user.age, user.active)
+        cursor.execute("INSERT INTO [User] (Type, Name, LastName, Email, Password, Age, Active) VALUES (?,?,?,?,?,?,?)", user.type, user.name, user.last_name, user.email, user.password, user.age, user.active)
         connection.commit()
         return {"message": "User created successfully"}
     except Exception as e:
@@ -51,7 +59,12 @@ async def create_user(user: User, conn = Depends(get_connection)):
         close_connection(connection,cursor)
 
 @router.put("/update/{id_user}/")
-async def update_user(id_user: int, user: User, conn = Depends(get_connection)):
+async def update_user(
+    id_user: int, 
+    user: User, 
+    current_user: dict = Depends(bearer.decode_jwt_token),
+    conn = Depends(get_connection)
+):
     connection, cursor = conn
     try:
         cursor.execute("UPDATE [User] SET Type = ?, Name = ?, LastName = ?, Email = ?, Password = ?, Age = ?, Active = ? WHERE Id = ?", user.type, user.name, user.last_name, user.email, user.password, user.age, user.active,id_user)
@@ -64,7 +77,11 @@ async def update_user(id_user: int, user: User, conn = Depends(get_connection)):
 
 
 @router.delete("/delete/{id_user}/")
-async def delete_user(id_user: int, conn = Depends(get_connection)):
+async def delete_user(
+    id_user: int,
+    current_user: dict = Depends(bearer.decode_jwt_token),
+    conn = Depends(get_connection)
+):
     connection, cursor = conn
     try:
         cursor.execute("DELETE FROM [User] WHERE Id = ?", id_user)
