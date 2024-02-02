@@ -14,7 +14,8 @@ class Book(BaseModel):
     url_l: Union[None, str]
 
 
-class Raiting_User(BaseModel):
+class Rating_User(BaseModel):
+    id_rating:int
     isbn: str
     id_user: int
     user_rating: int
@@ -22,3 +23,6 @@ class Raiting_User(BaseModel):
 class Rating_User_Search(BaseModel):
     isbn: str
     id_user: int
+
+class Update_Rating_User(BaseModel):
+    user_rating: int

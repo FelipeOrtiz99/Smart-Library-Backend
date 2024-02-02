@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.db.database import get_connection, close_connection
-from app.models.book_model import Book, Raiting_User, Rating_User_Search
+from app.models.book_model import Book, Rating_User, Rating_User_Search, Update_Rating_User
 from app.utils import bearer
 
 router = APIRouter()
@@ -147,7 +147,7 @@ async def get_rating(
     finally:
         close_connection(connection, cursor)   
 
-@router.post("/get/rating/user/", response_model=Raiting_User)
+@router.post("/get/rating/user/", response_model=Rating_User)
 async def get_rating_user(
     rating_user : Rating_User_Search,
     current_user: dict = Depends(bearer.decode_jwt_token),
@@ -155,7 +155,7 @@ async def get_rating_user(
 ):
     connection, cursor = conn
     try:
-        query = "SELECT ISBN as isbn, UserId as id_user,BookRating as user_rating FROM Rating Where Userid = ? AND ISBN = ?"
+        query = "SELECT Id as id_rating,ISBN as isbn, UserId as id_user,BookRating as user_rating FROM Rating Where Userid = ? AND ISBN = ?"
         cursor.execute(query, rating_user.id_user, rating_user.isbn)
         rating = cursor.fetchone()
         return rating
@@ -167,12 +167,15 @@ async def get_rating_user(
 
 @router.post("/create/rating/")
 async def create_rating(
-    rating_user: Raiting_User,
+    rating_user: Rating_User,
     current_user: dict = Depends(bearer.decode_jwt_token),
     conn = Depends(get_connection)
 ):
     connection,cursor = conn
     try:
+        
+        cursor.execute("Delete From [Rating] Where UserId = ? AND ISBN = ?", rating_user.id_user, rating_user.isbn)
+
         cursor.execute("INSERT INTO Rating (UserId, ISBN, BookRating) VALUES (?,?,?)", rating_user.id_user, rating_user.isbn, rating_user.user_rating)
         connection.commit()
         return {"message": "Rating created successfully"}
@@ -181,10 +184,10 @@ async def create_rating(
     finally:
         close_connection(connection,cursor)
 
-@router.put("/update/rating/{id_rating}/")
-async def update_rating(
-    id_rating: int, 
-    rating_user: Raiting_User, 
+@router.put("/update/rating/{id_rating}")
+async def update_rating( 
+    id_rating: int,
+    rating_user: Update_Rating_User, 
     current_user: dict = Depends(bearer.decode_jwt_token),
     conn = Depends(get_connection)):
     connection, cursor = conn
