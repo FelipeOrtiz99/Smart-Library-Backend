@@ -17,7 +17,7 @@ class Book(BaseModel):
 class Raiting_User(BaseModel):
     isbn: str
     id_user: int
-    user_raiting: float
+    user_rating: int
 
 class Rating_User_Search(BaseModel):
     isbn: str
