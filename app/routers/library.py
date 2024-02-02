@@ -130,24 +130,25 @@ async def search_author(
     finally:
         close_connection(connection, cursor)
 
-@router.get("/get/book/rating")
+@router.get("/get/book/rating/")
 async def get_rating(
-    isbn: str, 
+    isbn: str,
     current_user: dict = Depends(bearer.decode_jwt_token),
     conn = Depends(get_connection)
 ):
     connection, cursor = conn
     try:
-        cursor.execute("Select AVG(BookRating) As Raiting from rating Where ISBN = ?", isbn)
-        rating = cursor.fetchone["rating"]
+        query = "select [dbo].[Raiting_per_Book] (?) as rating"
+        cursor.execute(query, isbn)
+        rating = cursor.fetchone().rating
         return rating
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        close_connection(connection, cursor)
+        close_connection(connection, cursor)   
 
-@router.post("/get/rating/user", response_model=Raiting_User)
-async def get_rating(
+@router.post("/get/rating/user/", response_model=Raiting_User)
+async def get_rating_user(
     rating_user : Rating_User_Search,
     current_user: dict = Depends(bearer.decode_jwt_token),
     conn = Depends(get_connection)
@@ -164,7 +165,7 @@ async def get_rating(
         close_connection(connection, cursor)
 
 
-@router.post("/create/rating")
+@router.post("/create/rating/")
 async def create_rating(
     rating_user: Raiting_User,
     current_user: dict = Depends(bearer.decode_jwt_token),
