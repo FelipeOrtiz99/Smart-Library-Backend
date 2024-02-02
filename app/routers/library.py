@@ -173,7 +173,7 @@ async def create_rating(
 ):
     connection,cursor = conn
     try:
-        cursor.execute("INSERT INTO Rating (UserId, ISBN, BookRating) VALUES (?,?,?)", rating_user.id_user, rating_user.isbn, rating_user.user_raiting)
+        cursor.execute("INSERT INTO Rating (UserId, ISBN, BookRating) VALUES (?,?,?)", rating_user.id_user, rating_user.isbn, rating_user.user_rating)
         connection.commit()
         return {"message": "Rating created successfully"}
     except Exception as e:
@@ -189,7 +189,7 @@ async def update_rating(
     conn = Depends(get_connection)):
     connection, cursor = conn
     try:
-        cursor.execute("UPDATE [Book] SET BookRating = ? WHERE Id = ?", rating_user.user_raiting, id_rating)
+        cursor.execute("UPDATE [Rating] SET BookRating = ? WHERE Id = ?", rating_user.user_rating, id_rating)
         connection.commit()
         return {"message": "Rating updated successfully"}
     except Exception as e:
