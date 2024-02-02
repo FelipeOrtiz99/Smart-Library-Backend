@@ -45,7 +45,6 @@ async def get_user_id(
 @router.post("/create")
 async def create_user(
     user: User, 
-    current_user: dict = Depends(bearer.decode_jwt_token),
     conn = Depends(get_connection)
 ):
     connection,cursor = conn

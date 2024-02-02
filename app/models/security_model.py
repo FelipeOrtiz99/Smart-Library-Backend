@@ -10,6 +10,7 @@ class Token(BaseModel):
 
 class UserLoginResponse(BaseModel):
     token: Token
+    id_user: int
     name: str
     last_name: Union[None,str]
     username: str
